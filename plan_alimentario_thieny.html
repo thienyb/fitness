@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Mi Dieta">
+<title>Mi Plan Alimentario</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:#fff;--bg2:#f5f5f3;--bg3:#ebebea;
+  --text:#1a1a18;--text2:#6b6b66;--text3:#9b9b96;
+  --border:rgba(0,0,0,0.1);--border2:rgba(0,0,0,0.18);
+  --green:#eaf3de;--green-t:#27500a;
+  --amber:#faeeda;--amber-t:#633806;
+  --blue:#e6f1fb;--blue-t:#0c447c;
+  --teal:#e1f5ee;--teal-t:#085041;
+  --r:12px;--rs:8px;
+}
+@media(prefers-color-scheme:dark){
+  :root{
+    --bg:#1c1c1a;--bg2:#252523;--bg3:#2e2e2b;
+    --text:#e8e8e2;--text2:#a0a09a;--text3:#6a6a65;
+    --border:rgba(255,255,255,0.1);--border2:rgba(255,255,255,0.2);
+    --green:#173404;--green-t:#c0dd97;
+    --amber:#412402;--amber-t:#fac775;
+    --blue:#042c53;--blue-t:#b5d4f4;
+    --teal:#04342c;--teal-t:#9fe1cb;
+  }
+}
+body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:15px;line-height:1.5;padding-bottom:32px;}
+.header{background:var(--bg);border-bottom:0.5px solid var(--border);padding:16px 16px 0;position:sticky;top:0;z-index:10;}
+.header-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:2px;}
+.header-title{font-size:20px;font-weight:600;}
+.header-sub{font-size:12px;color:var(--text2);}
+.kcal-badge{background:var(--amber);color:var(--amber-t);font-size:11px;font-weight:700;padding:4px 10px;border-radius:20px;white-space:nowrap;margin-top:2px;}
+.tabs{display:flex;gap:6px;margin-top:12px;overflow-x:auto;padding-bottom:10px;scrollbar-width:none;}
+.tabs::-webkit-scrollbar{display:none;}
+.tab{flex-shrink:0;padding:7px 16px;border-radius:20px;font-size:13px;font-weight:500;border:0.5px solid var(--border2);background:var(--bg2);color:var(--text2);cursor:pointer;-webkit-tap-highlight-color:transparent;}
+.tab.active{background:var(--text);color:var(--bg);border-color:var(--text);}
+.content{padding:16px;}
+.section{display:none;}
+.section.active{display:block;}
+.meal-card{background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--r);margin-bottom:10px;overflow:hidden;}
+.meal-header{display:flex;align-items:center;gap:10px;padding:13px 14px;cursor:pointer;-webkit-tap-highlight-color:transparent;}
+.meal-emoji{font-size:18px;width:36px;height:36px;border-radius:var(--rs);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.meal-meta{flex:1;min-width:0;}
+.meal-time{font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;}
+.meal-name{font-size:15px;font-weight:500;}
+.meal-kcal{font-size:11px;color:var(--text3);margin-top:1px;}
+.badge{font-size:11px;font-weight:600;padding:3px 8px;border-radius:20px;flex-shrink:0;}
+.badge-key{background:var(--amber);color:var(--amber-t);}
+.badge-easy{background:var(--green);color:var(--green-t);}
+.badge-prep{background:var(--blue);color:var(--blue-t);}
+.chevron{font-size:10px;color:var(--text3);transition:transform .2s;margin-left:4px;flex-shrink:0;}
+.chevron.open{transform:rotate(180deg);}
+.meal-body{border-top:0.5px solid var(--border);padding:12px 14px;}
+.meal-body.hidden,.recipe-body.hidden{display:none;}
+.food-row{display:flex;justify-content:space-between;gap:8px;padding:7px 0;border-bottom:0.5px solid var(--border);}
+.food-row:last-of-type{border-bottom:none;}
+.food-name{font-size:13px;flex:1;}
+.food-qty{font-size:12px;color:var(--text2);white-space:nowrap;}
+.tip{margin-top:10px;background:var(--bg);border-left:2.5px solid var(--border2);border-radius:0 var(--rs) var(--rs) 0;padding:8px 10px;font-size:12px;color:var(--text2);line-height:1.5;}
+.slabel{font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin:12px 0 6px;}
+.rot-row{padding:8px 0;border-bottom:0.5px solid var(--border);font-size:13px;}
+.rot-row:last-of-type{border-bottom:none;}
+.rot-day{font-size:11px;font-weight:700;color:var(--text3);margin-bottom:2px;}
+.recipe-card{background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--r);margin-bottom:10px;overflow:hidden;}
+.recipe-header{display:flex;align-items:center;gap:10px;padding:14px;cursor:pointer;-webkit-tap-highlight-color:transparent;}
+.recipe-info{flex:1;}
+.recipe-title{font-size:15px;font-weight:500;}
+.recipe-sub{font-size:12px;color:var(--text2);margin-top:2px;}
+.recipe-body{border-top:0.5px solid var(--border);padding:14px;}
+.ingr-row{display:flex;justify-content:space-between;padding:6px 0;border-bottom:0.5px solid var(--border);font-size:13px;}
+.ingr-row:last-of-type{border-bottom:none;}
+.ingr-qty{color:var(--text2);}
+.step-row{padding:10px 0;border-bottom:0.5px solid var(--border);font-size:13px;display:flex;gap:10px;}
+.step-row:last-of-type{border-bottom:none;}
+.step-num{width:22px;height:22px;border-radius:50%;background:var(--text);color:var(--bg);font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;}
+.note-box{background:var(--teal);border-radius:var(--rs);padding:10px 12px;font-size:12px;color:var(--teal-t);margin-top:10px;line-height:1.5;}
+.prep-card{background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--r);padding:14px;margin-bottom:10px;}
+.prep-title{font-size:15px;font-weight:500;margin-bottom:10px;}
+.check-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:0.5px solid var(--border);cursor:pointer;-webkit-tap-highlight-color:transparent;}
+.check-row:last-child{border-bottom:none;}
+.check-box{width:20px;height:20px;border-radius:6px;border:1.5px solid var(--border2);flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .15s;}
+.check-box.checked{background:var(--text);border-color:var(--text);}
+.check-mark{color:var(--bg);font-size:12px;font-weight:700;display:none;}
+.check-box.checked .check-mark{display:block;}
+.check-label{font-size:13px;flex:1;}
+.check-label.done{text-decoration:line-through;color:var(--text3);}
+.obj-card{background:var(--green);border-radius:var(--r);padding:12px 14px;margin-bottom:12px;}
+.obj-title{font-size:11px;font-weight:700;color:var(--green-t);text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px;}
+.obj-row{display:flex;justify-content:space-between;font-size:13px;color:var(--green-t);padding:2px 0;}
+.stats-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-bottom:12px;}
+.stat-card{background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--r);padding:12px 14px;}
+.stat-label{font-size:11px;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px;}
+.stat-value{font-size:22px;font-weight:500;}
+.stat-unit{font-size:13px;color:var(--text2);}
+.stat-diff{font-size:12px;margin-top:2px;}
+.diff-good{color:var(--green-t);}
+.progress-wrap{background:var(--bg3);border-radius:20px;height:8px;margin:8px 0 4px;overflow:hidden;}
+.progress-bar{height:100%;border-radius:20px;background:var(--text);transition:width .4s;}
+.progress-labels{display:flex;justify-content:space-between;font-size:11px;color:var(--text3);}
+.entry-form{background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--r);padding:14px;margin-bottom:12px;}
+.form-title{font-size:14px;font-weight:500;margin-bottom:12px;}
+.form-label{font-size:12px;color:var(--text2);margin-bottom:4px;display:block;}
+.form-input{width:100%;background:var(--bg);border:0.5px solid var(--border2);border-radius:var(--rs);padding:9px 12px;font-size:14px;color:var(--text);outline:none;-webkit-appearance:none;}
+.form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;}
+.form-row{margin-bottom:10px;}
+.btn-save{width:100%;background:var(--text);color:var(--bg);border:none;border-radius:var(--rs);padding:12px;font-size:14px;font-weight:500;cursor:pointer;margin-top:4px;}
+.entry-card{background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--r);padding:12px 14px;margin-bottom:8px;}
+.entry-date{font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.04em;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;}
+.entry-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;}
+.entry-item-label{font-size:11px;color:var(--text2);}
+.entry-item-value{font-size:14px;font-weight:500;}
+.btn-del{background:none;border:none;color:var(--text3);font-size:18px;cursor:pointer;padding:0;line-height:1;}
+.empty-state{text-align:center;padding:32px 16px;color:var(--text3);font-size:13px;}
+.week-label{font-size:12px;font-weight:600;color:var(--text2);margin:14px 0 6px;text-transform:uppercase;letter-spacing:.04em;}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-top">
+    <div>
+      <div class="header-title">Mi plan alimentario</div>
+      <div class="header-sub">Reducción de grasa · Barcelona</div>
+    </div>
+    <div class="kcal-badge">~1.220 kcal/día</div>
+  </div>
+  <div class="tabs">
+    <div class="tab active" onclick="showTab('plan',this)">Plan del día</div>
+    <div class="tab" onclick="showTab('comidas',this)">Comidas</div>
+    <div class="tab" onclick="showTab('recetas',this)">Recetas</div>
+    <div class="tab" onclick="showTab('prep',this)">Prep</div>
+    <div class="tab" onclick="showTab('tracker',this)">Tracker</div>
+  </div>
+</div>
+
+<div class="content">
+
+  <div class="section active" id="tab-plan">
+    <div class="meal-card">
+      <div class="meal-header" onclick="toggleMeal(this)">
+        <div class="meal-emoji" style="background:#fff3e0">🍳</div>
+        <div class="meal-meta"><div class="meal-time">08:00</div><div class="meal-name">Desayuno</div><div class="meal-kcal">~204 kcal</div></div>
+        <span class="badge badge-easy">Fácil</span><span class="chevron">▼</span>
+      </div>
+      <div class="meal-body hidden">
+        <div class="food-row"><span class="food-name">Pan integral tostado</span><span class="food-qty">1 rebanada</span></div>
+        <div class="food-row"><span class="food-name">Huevo cocido (prep el domingo)</span><span class="food-qty">1 unidad</span></div>
+        <div class="food-row"><span class="food-name">Queso en loncha (mozzarella o light)</span><span class="food-qty">1 loncha</span></div>
+        <div class="tip">Cuece 4-5 huevos el domingo. Duran toda la semana. Desayuno listo en 3 minutos.</div>
+      </div>
+    </div>
+
+    <div class="meal-card">
+      <div class="meal-header" onclick="toggleMeal(this)">
+        <div class="meal-emoji" style="background:#f3e5f5">🍮</div>
+        <div class="meal-meta"><div class="meal-time">11:00</div><div class="meal-name">Snack de media mañana</div><div class="meal-kcal">~116 kcal</div></div>
+        <span class="badge badge-easy">Sin prep</span><span class="chevron">▼</span>
+      </div>
+      <div class="meal-body hidden">
+        <div class="slabel">Alterna entre</div>
+        <div class="food-row"><span class="food-name">Mousse chocolate proteico Mercadona</span><span class="food-qty">~98 kcal</span></div>
+        <div class="food-row"><span class="food-name">Natillas vainilla proteicas Mercadona</span><span class="food-qty">~102 kcal</span></div>
+        <div class="food-row"><span class="food-name">Plátano + 1 scoop whey MyProtein</span><span class="food-qty">~148 kcal</span></div>
+        <div class="tip">Whey sabores: cookies & cream o chocolate blanco con coco.</div>
+      </div>
+    </div>
+
+    <div class="meal-card">
+      <div class="meal-header" onclick="toggleMeal(this)">
+        <div class="meal-emoji" style="background:#e8f5e9">🍽️</div>
+        <div class="meal-meta"><div class="meal-time">13:30</div><div class="meal-name">Comida principal</div><div class="meal-kcal">~320 kcal</div></div>
+        <span class="badge badge-prep">Batch 2 días</span><span class="chevron">▼</span>
+      </div>
+      <div class="meal-body hidden">
+        <div class="slabel">Rotación semanal</div>
+        <div class="rot-row"><div class="rot-day">Lunes / Martes</div>Pechuga airfryer (135g) + arroz (50g) + calabacín (200g)</div>
+        <div class="rot-row"><div class="rot-day">Miércoles / Jueves</div>Carne picada con tomate (100g) + pasta integral (50g) + calabacín</div>
+        <div class="rot-row"><div class="rot-day">Viernes / Sábado</div>Filete vacuno (110g) + patata airfryer (90g) + calabacín</div>
+        <div class="rot-row"><div class="rot-day">Domingo</div>Contramuslo airfryer (110g) + trigo sarraceno (65g) + verduras</div>
+        <div class="tip">Empieza siempre con ensalada libre. Aliña con limón o vinagre, sin aceite.</div>
+      </div>
+    </div>
+
+    <div class="meal-card">
+      <div class="meal-header" onclick="toggleMeal(this)">
+        <div class="meal-emoji" style="background:#fce4ec">🍫</div>
+        <div class="meal-meta"><div class="meal-time">14:00</div><div class="meal-name">Postre</div><div class="meal-kcal">menos de 83 kcal</div></div>
+        <span class="badge badge-easy">Libre</span><span class="chevron">▼</span>
+      </div>
+      <div class="meal-body hidden">
+        <div class="slabel">Cualquier opción bajo 83 kcal</div>
+        <div class="food-row"><span class="food-name">Chocolate negro</span><span class="food-qty">15g (~83 kcal)</span></div>
+        <div class="food-row"><span class="food-name">Mini helado Mercadona</span><span class="food-qty">1 ud (~76 kcal)</span></div>
+        <div class="food-row"><span class="food-name">Cualquier otra opción</span><span class="food-qty">&lt; 83 kcal</span></div>
+        <div class="tip">Si está por debajo de 83 kcal, encaja perfectamente en el plan.</div>
+      </div>
+    </div>
+
+    <div class="meal-card" style="border:1.5px solid #ba7517;">
+      <div class="meal-header" onclick="toggleMeal(this)">
+        <div class="meal-emoji" style="background:#fff8e1">⭐</div>
+        <div class="meal-meta"><div class="meal-time">18:00</div><div class="meal-name">Merienda anti-crisis</div><div class="meal-kcal">~265 kcal</div></div>
+        <span class="badge badge-key">Clave del día</span><span class="chevron">▼</span>
+      </div>
+      <div class="meal-body hidden">
+        <div class="slabel">Rota entre las 3 opciones</div>
+        <div class="food-row"><span class="food-name">Bolinhos de banana airfryer (prep antes)</span><span class="food-qty">~270 kcal</span></div>
+        <div class="food-row"><span class="food-name">Chia pudding con yogur + fruta (noche anterior)</span><span class="food-qty">~265 kcal</span></div>
+        <div class="food-row"><span class="food-name">Sandwich atún + cream cheese (1 rebanada)</span><span class="food-qty">~220 kcal</span></div>
+        <div class="tip">El momento más importante del día. Si tienes algo listo a las 18h, no picoteas. Prepara siempre algo la noche anterior.</div>
+      </div>
+    </div>
+
+    <div class="meal-card">
+      <div class="meal-header" onclick="toggleMeal(this)">
+        <div class="meal-emoji" style="background:#e3f2fd">🌙</div>
+        <div class="meal-meta"><div class="meal-time">21:00</div><div class="meal-name">Cena ligera</div><div class="meal-kcal">~230 kcal</div></div>
+        <span class="badge badge-prep">30 min / 2 días</span><span class="chevron">▼</span>
+      </div>
+      <div class="meal-body hidden">
+        <div class="slabel">Opciones</div>
+        <div class="food-row"><span class="food-name">Tortilla con atún y cream cheese</span><span class="food-qty">~230 kcal</span></div>
+        <div class="food-row"><span class="food-name">Hamburguesa casera airfryer</span><span class="food-qty">~400-440 kcal (1x/sem)</span></div>
+        <div class="food-row"><span class="food-name">Sandwich atún + cream cheese (1 rebanada)</span><span class="food-qty">~220 kcal</span></div>
+        <div class="food-row"><span class="food-name">Lo mismo que al mediodía (60-70% porción)</span><span class="food-qty">~200-220 kcal</span></div>
+        <div class="tip">Prioriza tortilla o la versión reducida del mediodía. Hamburguesa máximo 1 vez por semana.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section" id="tab-comidas">
+    <div class="meal-card">
+      <div class="meal-header" onclick="toggleMeal(this)">
+        <div class="meal-emoji" style="background:#e8f5e9">🐔</div>
+        <div class="meal-meta"><div class="meal-time">Lunes / Martes</div><div class="meal-name">Pechuga + arroz + calabacín</div></div>
+        <span class="chevron">▼</span>
+      </div>
+      <div class="meal-body hidden">
+        <div class="food-row"><span class="food-name">Pechuga de pollo (airfryer 180°, 18 min)</span><span class="food-qty">135g</span></div>
+        <div class="food-row"><span class="food-name">Arroz cocido</span><span class="food-qty">50g</span></div>
+        <div class="food-row"><span class="food-name">Calabacín salteado con ajo</span><span class="food-qty">200g mín.</span></div>
+        <div class="food-row"><span class="food-name">Ensalada libre</span><span class="food-qty">a voluntad</span></div>
+        <div class="tip">Cena versión reducida: 80g pechuga + 30g arroz + calabacín.</div>
+      </div>
+    </div>
+    <div class="meal-card">
+      <div class="meal-header" onclick="toggleMeal(this)">
+        <div class="meal-emoji" style="background:#fce4ec">🥩</div>
+        <div class="meal-meta"><div class="meal-time">Miércoles / Jueves</div><div class="meal-name">Carne picada + pasta + calabacín</div></div>
+        <span class="chevron">▼</span>
+      </div>
+      <div class="meal-body hidden">
+        <div class="food-row"><span class="food-name">Carne picada de vacuno</span><span class="food-qty">100g</span></div>
+        <div class="food-row"><span class="food-name">Pasta integral cocida</span><span class="food-qty">50g</span></div>
+        <div class="food-row"><span class="food-name">Tomate triturado (sofrito con ajo y cebolla)</span><span class="food-qty">a voluntad</span></div>
+        <div class="food-row"><span class="food-name">Calabacín salteado</span><span class="food-qty">200g mín.</span></div>
+        <div class="tip">Cena versión reducida: 60g carne + 30g pasta + tomate + calabacín.</div>
+      </div>
+    </div>
+    <div class="meal-card">
+      <div class="meal-header" onclick="toggleMeal(this)">
+        <div class="meal-emoji" style="background:#fff3e0">🥩</div>
+        <div class="meal-meta"><div class="meal-time">Viernes / Sábado</div><div class="meal-name">Filete vacuno + patata + calabacín</div></div>
+        <span class="chevron">▼</span>
+      </div>
+      <div class="meal-body hidden">
+        <div class="food-row"><span class="food-name">Filete de vacuno a la plancha</span><span class="food-qty">110g</span></div>
+        <div class="food-row"><span class="food-name">Patata asada airfryer (200°, 20 min)</span><span class="food-qty">90g</span></div>
+        <div class="food-row"><span class="food-name">Calabacín a la plancha</span><span class="food-qty">200g mín.</span></div>
+        <div class="tip">Cena versión reducida: 70g filete + 55g patata + calabacín.</div>
+      </div>
+    </div>
+    <div class="meal-card">
+      <div class="meal-header" onclick="toggleMeal(this)">
+        <div class="meal-emoji" style="background:#e1f5ee">🐔</div>
+        <div class="meal-meta"><div class="meal-time">Domingo</div><div class="meal-name">Contramuslo + trigo sarraceno</div></div>
+        <span class="chevron">▼</span>
+      </div>
+      <div class="meal-body hidden">
+        <div class="food-row"><span class="food-name">Contramuslo deshuesado airfryer</span><span class="food-qty">110g</span></div>
+        <div class="food-row"><span class="food-name">Trigo sarraceno cocido</span><span class="food-qty">65g</span></div>
+        <div class="food-row"><span class="food-name">Verduras a tu gusto</span><span class="food-qty">200g mín.</span></div>
+        <div class="tip">Cena versión reducida: 70g contramuslo + 40g trigo + verduras.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section" id="tab-recetas">
+    <div class="recipe-card">
+      <div class="recipe-header" onclick="toggleRecipe(this)">
+        <div class="recipe-info"><div class="recipe-title">Chia pudding proteico</div><div class="recipe-sub">Noche anterior · 5 min · ~265 kcal</div></div>
+        <span class="chevron">▼</span>
+      </div>
+      <div class="recipe-body hidden">
+        <div class="slabel">Ingredientes (base)</div>
+        <div class="ingr-row"><span>Yogur skyr Alcampo Protein+ natural</span><span class="ingr-qty">120g</span></div>
+        <div class="ingr-row"><span>Bebida vegetal almendras Monsoy</span><span class="ingr-qty">80ml</span></div>
+        <div class="ingr-row"><span>Semillas de chía</span><span class="ingr-qty">20g</span></div>
+        <div class="ingr-row"><span>Whey HSN chocolate blanco y coco</span><span class="ingr-qty">15g</span></div>
+        <div class="ingr-row"><span>Canela en polvo</span><span class="ingr-qty">al gusto</span></div>
+        <div class="slabel">Fruta (añadir al día siguiente)</div>
+        <div class="ingr-row"><span>Opción 1 — Solo fresas</span><span class="ingr-qty">80g</span></div>
+        <div class="ingr-row"><span>Opción 2 — Solo plátano</span><span class="ingr-qty">40g</span></div>
+        <div class="ingr-row"><span>Opción 3 — Plátano + fresas</span><span class="ingr-qty">40g + 40g</span></div>
+        <div class="ingr-row"><span>Opción 4 — Solo mango</span><span class="ingr-qty">80g</span></div>
+        <div class="slabel" style="margin-top:14px">Preparación</div>
+        <div class="step-row"><div class="step-num">1</div><div>Mezcla el yogur, bebida vegetal y whey hasta que no queden grumos.</div></div>
+        <div class="step-row"><div class="step-num">2</div><div>Añade la chía y remueve bien para que no se apelmace en el fondo.</div></div>
+        <div class="step-row"><div class="step-num">3</div><div>Tapa y mete en la nevera. Mínimo 4 horas, idealmente toda la noche.</div></div>
+        <div class="step-row"><div class="step-num">4</div><div>Al día siguiente: añade la fruta por encima y espolvorea canela.</div></div>
+        <div class="note-box">Todas las opciones de fruta suman ~265 kcal totales. Si usas plátano + fresa, pesa exactamente 40g de cada uno para no pasarte. El choco blanco con coco combina especialmente bien con fresas. 🍓</div>
+      </div>
+    </div>
+
+    <div class="recipe-card">
+      <div class="recipe-header" onclick="toggleRecipe(this)">
+        <div class="recipe-info"><div class="recipe-title">Bolinhos de banana (airfryer)</div><div class="recipe-sub">Prep varios · 3 días en nevera · ~270 kcal · 20g proteína</div></div>
+        <span class="chevron">▼</span>
+      </div>
+      <div class="recipe-body hidden">
+        <div class="slabel">Ingredientes</div>
+        <div class="ingr-row"><span>Plátano de Canarias maduro</span><span class="ingr-qty">70g</span></div>
+        <div class="ingr-row"><span>Copos de avena</span><span class="ingr-qty">30g</span></div>
+        <div class="ingr-row"><span>Whey HSN sabor chocolate blanco y coco</span><span class="ingr-qty">20g</span></div>
+        <div class="ingr-row"><span>Dulce de leche</span><span class="ingr-qty">3g</span></div>
+        <div class="ingr-row"><span>Canela y cacao puro 100%</span><span class="ingr-qty">al gusto</span></div>
+        <div class="slabel" style="margin-top:14px">Preparación</div>
+        <div class="step-row"><div class="step-num">1</div><div>Aplasta bien el plátano con un tenedor hasta que no queden grumos.</div></div>
+        <div class="step-row"><div class="step-num">2</div><div>Mezcla con los copos de avena, el whey, canela y cacao hasta tener una masa homogénea.</div></div>
+        <div class="step-row"><div class="step-num">3</div><div>Forma bolitas o tortitas y pon en airfryer a 180° unos 10-12 minutos.</div></div>
+        <div class="step-row"><div class="step-num">4</div><div>Añade el dulce de leche por encima al servir.</div></div>
+        <div class="note-box">Guarda en tupper hasta 3 días en nevera. Para servir: 2 min en airfryer y quedan como recién hechos. Cuanto más maduro el plátano, más dulce y fácil de aplastar.</div>
+      </div>
+    </div>
+
+    <div class="recipe-card">
+      <div class="recipe-header" onclick="toggleRecipe(this)">
+        <div class="recipe-info"><div class="recipe-title">Sandwich de atún con cream cheese</div><div class="recipe-sub">Merienda o cena · 5 min · ~220 kcal</div></div>
+        <span class="chevron">▼</span>
+      </div>
+      <div class="recipe-body hidden">
+        <div class="slabel">Ingredientes</div>
+        <div class="ingr-row"><span>Pan integral</span><span class="ingr-qty">1 rebanada</span></div>
+        <div class="ingr-row"><span>Atún en lata en aceite (lavar y escurrir)</span><span class="ingr-qty">1 lata (100g)</span></div>
+        <div class="ingr-row"><span>Cream cheese light Philadelphia</span><span class="ingr-qty">25g</span></div>
+        <div class="ingr-row"><span>Ketchup y mostaza</span><span class="ingr-qty">al gusto</span></div>
+        <div class="ingr-row"><span>Lechuga, tomate, pepino</span><span class="ingr-qty">al gusto</span></div>
+        <div class="slabel" style="margin-top:14px">Preparación</div>
+        <div class="step-row"><div class="step-num">1</div><div>Vierte el atún en un colador y lava bajo el grifo para retirar el aceite.</div></div>
+        <div class="step-row"><div class="step-num">2</div><div>Mezcla el atún con cream cheese, ketchup y mostaza.</div></div>
+        <div class="step-row"><div class="step-num">3</div><div>Monta con lechuga, tomate y pepino sobre la tostada.</div></div>
+        <div class="note-box">Compra siempre atún en aceite — el aceite absorbe los metales pesados de la lata y tú no lo consumes al lavarlo.</div>
+      </div>
+    </div>
+
+    <div class="recipe-card">
+      <div class="recipe-header" onclick="toggleRecipe(this)">
+        <div class="recipe-info"><div class="recipe-title">Hamburguesa casera (airfryer)</div><div class="recipe-sub">Cena · 15 min · ~400-440 kcal · máx. 1x/semana</div></div>
+        <span class="chevron">▼</span>
+      </div>
+      <div class="recipe-body hidden">
+        <div class="slabel">Ingredientes</div>
+        <div class="ingr-row"><span>Hamburguesa vacuno ecológica (Ecológica Pirineos)</span><span class="ingr-qty">1 unidad (120g)</span></div>
+        <div class="ingr-row"><span>Queso mozzarella en loncha</span><span class="ingr-qty">15g</span></div>
+        <div class="ingr-row"><span>Lechuga, tomate, cebolla</span><span class="ingr-qty">al gusto</span></div>
+        <div class="ingr-row"><span>Ketchup y mostaza</span><span class="ingr-qty">al gusto</span></div>
+        <div class="ingr-row"><span>Especias (chimichurri, páprica, orégano)</span><span class="ingr-qty">al gusto</span></div>
+        <div class="slabel">Opciones de pan (elige una)</div>
+        <div class="ingr-row"><span>Pan francés / barra</span><span class="ingr-qty">~120 kcal</span></div>
+        <div class="ingr-row"><span>Pan integral de molde (2 rebanadas)</span><span class="ingr-qty">~130 kcal</span></div>
+        <div class="ingr-row"><span>Pan de hamburguesa integral (Mercadona)</span><span class="ingr-qty">~140 kcal</span></div>
+        <div class="ingr-row"><span>Pan de molde fino (2 rebanadas)</span><span class="ingr-qty">~100 kcal</span></div>
+        <div class="ingr-row"><span>Sin pan — lechuga wrap</span><span class="ingr-qty">~5 kcal</span></div>
+        <div class="slabel" style="margin-top:14px">Preparación</div>
+        <div class="step-row"><div class="step-num">1</div><div>Sazona la hamburguesa con las especias por ambos lados.</div></div>
+        <div class="step-row"><div class="step-num">2</div><div>Airfryer a 180° unos 12 minutos, girando a mitad.</div></div>
+        <div class="step-row"><div class="step-num">3</div><div>Últimos 2 min: añade el queso encima para que se funda.</div></div>
+        <div class="step-row"><div class="step-num">4</div><div>Monta con lechuga, tomate y cebolla en el pan elegido.</div></div>
+        <div class="note-box">Carne ecológica 99% vacuno — sin bacon necesario, ya tiene todo el sabor. Proteína de alta calidad: 20g por 100g.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section" id="tab-prep">
+    <div class="prep-card">
+      <div class="prep-title">Domingo — prep semanal (20 min)</div>
+      <div class="check-row" onclick="toggleCheck(this)"><div class="check-box"><span class="check-mark">✓</span></div><span class="check-label">Cocer 4-5 huevos para el desayuno</span></div>
+      <div class="check-row" onclick="toggleCheck(this)"><div class="check-box"><span class="check-mark">✓</span></div><span class="check-label">Preparar bolinhos de banana y guardar en tupper</span></div>
+      <div class="check-row" onclick="toggleCheck(this)"><div class="check-box"><span class="check-mark">✓</span></div><span class="check-label">Hacer la compra semanal</span></div>
+      <div class="check-row" onclick="toggleCheck(this)"><div class="check-box"><span class="check-mark">✓</span></div><span class="check-label">Tener mousse/natillas en la nevera</span></div>
+      <div class="check-row" onclick="toggleCheck(this)"><div class="check-box"><span class="check-mark">✓</span></div><span class="check-label">Dejar chia pudding en la nevera (para el lunes)</span></div>
+    </div>
+    <div class="prep-card">
+      <div class="prep-title">Cada noche (2 min)</div>
+      <div class="check-row" onclick="toggleCheck(this)"><div class="check-box"><span class="check-mark">✓</span></div><span class="check-label">Preparar el chia pudding del día siguiente</span></div>
+      <div class="check-row" onclick="toggleCheck(this)"><div class="check-box"><span class="check-mark">✓</span></div><span class="check-label">Revisar que tengas algo listo para las 18h</span></div>
+    </div>
+    <div class="prep-card">
+      <div class="prep-title">Lista de compra (Mercadona / Lidl / Alcampo)</div>
+      <div class="food-row"><span class="food-name">Pan integral</span></div>
+      <div class="food-row"><span class="food-name">Huevos</span></div>
+      <div class="food-row"><span class="food-name">Queso mozzarella o light en loncha</span></div>
+      <div class="food-row"><span class="food-name">Yogur skyr Alcampo Protein+ natural</span></div>
+      <div class="food-row"><span class="food-name">Mousse chocolate + natillas vainilla (Mercadona)</span></div>
+      <div class="food-row"><span class="food-name">Whey MyProtein (cookies & cream / choco coco)</span></div>
+      <div class="food-row"><span class="food-name">Semillas de chía</span></div>
+      <div class="food-row"><span class="food-name">Bebida vegetal almendras Monsoy</span></div>
+      <div class="food-row"><span class="food-name">Atún en lata en aceite</span></div>
+      <div class="food-row"><span class="food-name">Cream cheese light Philadelphia</span></div>
+      <div class="food-row"><span class="food-name">Pechuga / contramuslo de pollo</span></div>
+      <div class="food-row"><span class="food-name">Carne picada y filete de vacuno</span></div>
+      <div class="food-row"><span class="food-name">Calabacín</span></div>
+      <div class="food-row"><span class="food-name">Arroz, pasta integral, patata, trigo sarraceno</span></div>
+      <div class="food-row"><span class="food-name">Frutas (plátano, fresas, mango)</span></div>
+      <div class="food-row"><span class="food-name">Chocolate negro o mini helados Mercadona</span></div>
+      <div class="food-row"><span class="food-name">Banana madura (para bolinhos)</span></div>
+      <div class="food-row"><span class="food-name">Farelo de avena</span></div>
+    </div>
+  </div>
+
+  <div class="section" id="tab-tracker">
+    <div class="obj-card">
+      <div class="obj-title">Mi objetivo</div>
+      <div class="obj-row"><span>Peso inicial</span><span>56 kg</span></div>
+      <div class="obj-row"><span>Peso objetivo</span><span>52 kg</span></div>
+      <div class="obj-row"><span>Plazo</span><span>8 semanas (~2 meses)</span></div>
+      <div class="obj-row"><span>Ritmo esperado</span><span>~0.5 kg/semana</span></div>
+    </div>
+
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-label">Último peso</div>
+        <div class="stat-value" id="stat-peso">—</div>
+        <div class="stat-unit" id="stat-peso-unit"></div>
+        <div class="stat-diff" id="stat-peso-diff"></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Progreso</div>
+        <div class="stat-value" id="stat-pct">—</div>
+        <div class="stat-unit" id="stat-pct-unit"></div>
+        <div class="stat-diff" id="stat-pct-diff"></div>
+      </div>
+    </div>
+
+    <div id="progress-section" style="display:none;margin-bottom:12px;">
+      <div class="progress-wrap"><div class="progress-bar" id="progress-bar" style="width:0%"></div></div>
+      <div class="progress-labels"><span>56 kg</span><span id="progress-pct">0%</span><span>52 kg</span></div>
+    </div>
+
+    <div class="entry-form">
+      <div class="form-title">Registrar medidas</div>
+      <div class="form-row"><label class="form-label">Fecha</label><input type="date" class="form-input" id="inp-fecha"></div>
+      <div class="form-grid">
+        <div class="form-row"><label class="form-label">Peso (kg)</label><input type="number" step="0.1" class="form-input" id="inp-peso" placeholder="ej: 55.8"></div>
+        <div class="form-row"><label class="form-label">Cintura (cm)</label><input type="number" step="0.5" class="form-input" id="inp-cintura" placeholder="ej: 72"></div>
+        <div class="form-row"><label class="form-label">Cadera (cm)</label><input type="number" step="0.5" class="form-input" id="inp-cadera" placeholder="ej: 94"></div>
+        <div class="form-row"><label class="form-label">Muslo (cm)</label><input type="number" step="0.5" class="form-input" id="inp-muslo" placeholder="ej: 56"></div>
+      </div>
+      <div class="form-row"><label class="form-label">Nota opcional</label><input type="text" class="form-input" id="inp-nota" placeholder="ej: Me siento con más energía"></div>
+      <button class="btn-save" onclick="saveEntry()">Guardar registro</button>
+    </div>
+
+    <div style="display:flex;gap:8px;margin-bottom:12px;">
+      <button class="btn-export" onclick="exportCSV()" style="flex:1;background:var(--bg2);color:var(--text);border:0.5px solid var(--border2);border-radius:var(--rs);padding:11px;font-size:13px;font-weight:500;cursor:pointer;">⬇️ Exportar CSV</button>
+      <label class="btn-export" style="flex:1;background:var(--bg2);color:var(--text);border:0.5px solid var(--border2);border-radius:var(--rs);padding:11px;font-size:13px;font-weight:500;cursor:pointer;text-align:center;">
+        ⬆️ Importar CSV
+        <input type="file" accept=".csv" onchange="importCSV(event)" style="display:none;">
+      </label>
+    </div>
+    <div id="import-msg" style="display:none;background:var(--teal);color:var(--teal-t);border-radius:var(--rs);padding:10px 12px;font-size:13px;margin-bottom:12px;text-align:center;"></div>
+
+    <div id="entries-container"></div>
+  </div>
+
+</div>
+
+<script>
+document.getElementById('inp-fecha').value = new Date().toISOString().split('T')[0];
+
+function showTab(id, el) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('tab-' + id).classList.add('active');
+  el.classList.add('active');
+}
+function toggleMeal(h) {
+  h.nextElementSibling.classList.toggle('hidden');
+  h.querySelector('.chevron').classList.toggle('open');
+}
+function toggleRecipe(h) {
+  h.nextElementSibling.classList.toggle('hidden');
+  h.querySelector('.chevron').classList.toggle('open');
+}
+function toggleCheck(row) {
+  row.querySelector('.check-box').classList.toggle('checked');
+  row.querySelector('.check-label').classList.toggle('done');
+}
+function getEntries() {
+  try { return JSON.parse(localStorage.getItem('dieta_entries_v2') || '[]'); } catch(e) { return []; }
+}
+function setEntries(e) {
+  try { localStorage.setItem('dieta_entries_v2', JSON.stringify(e)); } catch(e) {}
+}
+function saveEntry() {
+  const fecha = document.getElementById('inp-fecha').value;
+  const peso = parseFloat(document.getElementById('inp-peso').value);
+  if (!fecha || isNaN(peso)) { alert('Introduce al menos la fecha y el peso.'); return; }
+  const entry = {
+    id: Date.now(), fecha, peso,
+    cintura: parseFloat(document.getElementById('inp-cintura').value) || null,
+    cadera: parseFloat(document.getElementById('inp-cadera').value) || null,
+    muslo: parseFloat(document.getElementById('inp-muslo').value) || null,
+    nota: document.getElementById('inp-nota').value.trim()
+  };
+  const entries = getEntries();
+  entries.unshift(entry);
+  setEntries(entries);
+  ['peso','cintura','cadera','muslo','nota'].forEach(f => document.getElementById('inp-'+f).value = '');
+  renderAll();
+}
+function deleteEntry(id) {
+  setEntries(getEntries().filter(e => e.id !== id));
+  renderAll();
+}
+function updateStats() {
+  const entries = getEntries();
+  if (!entries.length) {
+    document.getElementById('stat-peso').textContent = '—';
+    document.getElementById('stat-pct').textContent = '—';
+    document.getElementById('progress-section').style.display = 'none';
+    return;
+  }
+  const cur = entries[0].peso;
+  const perdido = 56 - cur;
+  const pct = Math.min(100, Math.max(0, (perdido / 4) * 100));
+  document.getElementById('stat-peso').textContent = cur.toFixed(1);
+  document.getElementById('stat-peso-unit').textContent = 'kg';
+  const diffEl = document.getElementById('stat-peso-diff');
+  if (perdido > 0) { diffEl.textContent = '▼ ' + perdido.toFixed(1) + ' kg desde inicio'; diffEl.className = 'stat-diff diff-good'; }
+  else if (perdido < 0) { diffEl.textContent = '▲ ' + Math.abs(perdido).toFixed(1) + ' kg desde inicio'; diffEl.className = 'stat-diff'; }
+  else { diffEl.textContent = 'Sin cambio desde inicio'; diffEl.className = 'stat-diff'; }
+  document.getElementById('stat-pct').textContent = Math.round(pct) + '%';
+  document.getElementById('stat-pct-unit').textContent = 'del objetivo';
+  const rest = cur - 52;
+  const pEl = document.getElementById('stat-pct-diff');
+  pEl.textContent = rest > 0 ? 'Faltan ' + rest.toFixed(1) + ' kg' : '¡Objetivo alcanzado!';
+  pEl.className = rest <= 0 ? 'stat-diff diff-good' : 'stat-diff';
+  document.getElementById('progress-section').style.display = 'block';
+  document.getElementById('progress-bar').style.width = pct + '%';
+  document.getElementById('progress-pct').textContent = Math.round(pct) + '%';
+}
+function formatDate(str) {
+  return new Date(str + 'T12:00:00').toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'long' });
+}
+function getWeek(str) {
+  const d = new Date(str + 'T12:00:00');
+  const start = new Date(d.getFullYear(), 0, 1);
+  return Math.ceil(((d - start) / 86400000 + start.getDay() + 1) / 7);
+}
+function renderEntries() {
+  const entries = getEntries();
+  const c = document.getElementById('entries-container');
+  if (!entries.length) { c.innerHTML = '<div class="empty-state">Aún no hay registros.<br>¡Añade tu primer peso hoy!</div>'; return; }
+  const grouped = {};
+  entries.forEach(e => {
+    const k = 'Semana ' + getWeek(e.fecha);
+    if (!grouped[k]) grouped[k] = [];
+    grouped[k].push(e);
+  });
+  let html = '';
+  Object.keys(grouped).forEach(week => {
+    html += `<div class="week-label">${week}</div>`;
+    grouped[week].forEach(e => {
+      html += `<div class="entry-card">
+        <div class="entry-date"><span>${formatDate(e.fecha)}</span><button class="btn-del" onclick="deleteEntry(${e.id})">×</button></div>
+        <div class="entry-grid">
+          <div class="entry-item"><div class="entry-item-label">Peso</div><div class="entry-item-value">${e.peso.toFixed(1)} kg</div></div>
+          ${e.cintura ? `<div class="entry-item"><div class="entry-item-label">Cintura</div><div class="entry-item-value">${e.cintura} cm</div></div>` : ''}
+          ${e.cadera ? `<div class="entry-item"><div class="entry-item-label">Cadera</div><div class="entry-item-value">${e.cadera} cm</div></div>` : ''}
+          ${e.muslo ? `<div class="entry-item"><div class="entry-item-label">Muslo</div><div class="entry-item-value">${e.muslo} cm</div></div>` : ''}
+        </div>
+        ${e.nota ? `<div style="margin-top:6px;font-size:12px;color:var(--text2);font-style:italic">"${e.nota}"</div>` : ''}
+      </div>`;
+    });
+  });
+  c.innerHTML = html;
+}
+function renderAll() { updateStats(); renderEntries(); }
+
+function exportCSV() {
+  const entries = getEntries();
+  if (!entries.length) { alert('No hay registros para exportar.'); return; }
+  const headers = ['Fecha','Peso (kg)','Cintura (cm)','Cadera (cm)','Muslo (cm)','Nota'];
+  const rows = entries.map(e => [
+    e.fecha,
+    e.peso,
+    e.cintura || '',
+    e.cadera || '',
+    e.muslo || '',
+    e.nota ? '"' + e.nota.replace(/"/g, '""') + '"' : ''
+  ].join(','));
+  const csv = [headers.join(','), ...rows].join('\n');
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'mis_medidas_dieta.csv';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function importCSV(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const lines = e.target.result.trim().split('\n');
+      if (lines.length < 2) { showImportMsg('El archivo está vacío.', false); return; }
+      const existing = getEntries();
+      const existingIds = new Set(existing.map(e => e.fecha));
+      let added = 0;
+      const newEntries = [];
+      for (let i = 1; i < lines.length; i++) {
+        const cols = lines[i].split(',');
+        if (!cols[0] || !cols[1]) continue;
+        const fecha = cols[0].trim();
+        const peso = parseFloat(cols[1]);
+        if (!fecha || isNaN(peso)) continue;
+        if (existingIds.has(fecha)) continue;
+        newEntries.push({
+          id: Date.now() + i,
+          fecha,
+          peso,
+          cintura: parseFloat(cols[2]) || null,
+          cadera: parseFloat(cols[3]) || null,
+          muslo: parseFloat(cols[4]) || null,
+          nota: cols[5] ? cols[5].replace(/^"|"$/g, '').replace(/""/g, '"').trim() : ''
+        });
+        added++;
+      }
+      const merged = [...newEntries, ...existing].sort((a,b) => b.fecha.localeCompare(a.fecha));
+      setEntries(merged);
+      renderAll();
+      showImportMsg(added > 0 ? `✓ ${added} registro${added>1?'s':''} importado${added>1?'s':''} correctamente.` : 'No se encontraron registros nuevos.', added > 0);
+    } catch(err) {
+      showImportMsg('Error al leer el archivo. Asegúrate de que es un CSV exportado desde esta app.', false);
+    }
+    event.target.value = '';
+  };
+  reader.readAsText(file);
+}
+
+function showImportMsg(msg, success) {
+  const el = document.getElementById('import-msg');
+  el.textContent = msg;
+  el.style.display = 'block';
+  el.style.background = success ? 'var(--teal)' : 'var(--amber)';
+  el.style.color = success ? 'var(--teal-t)' : 'var(--amber-t)';
+  setTimeout(() => { el.style.display = 'none'; }, 4000);
+}
+
+renderAll();
+</script>
+</body>
+</html>
